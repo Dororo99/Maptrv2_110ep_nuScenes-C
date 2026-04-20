@@ -24,11 +24,11 @@ from mmdet.datasets.pipelines import to_tensor
 import json
 
 from pathlib import Path
-from av2.datasets.sensor.av2_sensor_dataloader import AV2SensorDataLoader
-from av2.map.lane_segment import LaneMarkType, LaneSegment
-from av2.map.map_api import ArgoverseStaticMap
-from av2.geometry.se3 import SE3
-import av2.geometry.interpolate as interp_utils
+# from av2.datasets.sensor.av2_sensor_dataloader import AV2SensorDataLoader
+# from av2.map.lane_segment import LaneMarkType, LaneSegment
+# from av2.map.map_api import ArgoverseStaticMap
+# from av2.geometry.se3 import SE3
+# import av2.geometry.interpolate as interp_utils
 
 
 class LiDARInstanceLines(object):

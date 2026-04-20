@@ -254,7 +254,7 @@ data = dict(
     train=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + 'nuscenes_map_infos_temporal_train.pkl',
+        ann_file='data/neurips_nuscenes_map_infos_train_newsplit.pkl',
         pipeline=train_pipeline,
         classes=class_names,
         modality=input_modality,
@@ -274,8 +274,8 @@ data = dict(
     val=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + 'nuscenes_map_infos_temporal_val.pkl',
-        map_ann_file=data_root + 'nuscenes_map_anns_val.json',
+        ann_file='data/neurips_nuscenes_map_infos_val_newsplit.pkl',
+        map_ann_file='data/neurips_nuscenes_map_anns_val.json',
         pipeline=test_pipeline,  bev_size=(bev_h_, bev_w_),
         pc_range=point_cloud_range,
         fixed_ptsnum_per_line=fixed_ptsnum_per_gt_line,
@@ -286,8 +286,8 @@ data = dict(
     test=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + 'nuscenes_map_infos_temporal_val.pkl',
-        map_ann_file=data_root + 'nuscenes_map_anns_val.json',
+        ann_file='data/neurips_nuscenes_map_infos_val_newsplit.pkl',
+        map_ann_file='data/neurips_nuscenes_map_anns_val.json',
         pipeline=test_pipeline, 
         bev_size=(bev_h_, bev_w_),
         pc_range=point_cloud_range,
@@ -303,7 +303,8 @@ data = dict(
 
 optimizer = dict(
     type='AdamW',
-    lr=6e-4,
+    # 8-GPU 기준 6e-4에서 2-GPU 학습을 위해 선형 스케일링(0.25x)
+    lr=1.5e-4,
     paramwise_cfg=dict(
         custom_keys={
             'img_backbone': dict(lr_mult=0.1),
@@ -318,7 +319,7 @@ lr_config = dict(
     warmup_iters=500,
     warmup_ratio=1.0 / 3,
     min_lr_ratio=1e-3)
-total_epochs = 24
+total_epochs = 110
 evaluation = dict(interval=2, pipeline=test_pipeline, metric='chamfer',
                   save_best='NuscMap_chamfer/mAP', rule='greater')
 # total_epochs = 50
@@ -333,5 +334,6 @@ log_config = dict(
         dict(type='TensorboardLoggerHook')
     ])
 fp16 = dict(loss_scale=512.)
-checkpoint_config = dict(max_keep_ckpts=1, interval=2)
+# latest.pth가 매 epoch마다 갱신되도록 저장 주기를 1로 설정
+checkpoint_config = dict(max_keep_ckpts=5, interval=1, save_last=True)
 find_unused_parameters=True

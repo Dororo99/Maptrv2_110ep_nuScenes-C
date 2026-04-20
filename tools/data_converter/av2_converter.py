@@ -8,9 +8,9 @@ import logging
 from pathlib import Path
 from os import path as osp
 import os
-from av2.datasets.sensor.av2_sensor_dataloader import AV2SensorDataLoader
-from av2.map.lane_segment import LaneMarkType, LaneSegment
-from av2.map.map_api import ArgoverseStaticMap
+# # from av2.datasets.sensor.av2_sensor_dataloader import AV2SensorDataLoader
+# from av2.map.lane_segment import LaneMarkType, LaneSegment
+# from av2.map.map_api import ArgoverseStaticMap
 from tqdm import tqdm
 import argparse
 

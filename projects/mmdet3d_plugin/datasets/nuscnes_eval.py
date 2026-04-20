@@ -50,7 +50,11 @@ from nuscenes.eval.detection.data_classes import DetectionConfig, DetectionMetri
 from nuscenes.eval.detection.render import summary_plot, class_pr_curve, dist_pr_curve, visualize_sample
 from nuscenes.eval.common.utils import quaternion_yaw, Quaternion
 from mmdet3d.core.bbox.iou_calculators import BboxOverlaps3D
-from IPython import embed
+try:
+    from IPython import embed
+except ImportError:  # optional debug dependency
+    def embed(*args, **kwargs):
+        return None
 import json
 from typing import Any
 

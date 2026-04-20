@@ -8,19 +8,19 @@ import logging
 from pathlib import Path
 from os import path as osp
 import os
-from av2.datasets.sensor.av2_sensor_dataloader import AV2SensorDataLoader
-from av2.map.lane_segment import LaneMarkType, LaneSegment
-from av2.map.map_api import ArgoverseStaticMap
+# from av2.datasets.sensor.av2_sensor_dataloader import AV2SensorDataLoader
+# from av2.map.lane_segment import LaneMarkType, LaneSegment
+# from av2.map.map_api import ArgoverseStaticMap
 from tqdm import tqdm
 import argparse
 import networkx as nx
-from av2.map.map_primitives import Polyline
+# from av2.map.map_primitives import Polyline
 from nuscenes.map_expansion.map_api import NuScenesMapExplorer
 from shapely import affinity, ops
 from shapely.geometry import Polygon, LineString, box, MultiPolygon, MultiLineString
 from shapely.strtree import STRtree
 from nuscenes.eval.common.utils import quaternion_yaw, Quaternion
-from av2.geometry.se3 import SE3
+# from av2.geometry.se3 import SE3
 import numpy as np
 import math
 from shapely.geometry import CAP_STYLE, JOIN_STYLE

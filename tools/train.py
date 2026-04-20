@@ -84,6 +84,50 @@ def parse_args():
         '--autoscale-lr',
         action='store_true',
         help='automatically scale lr with the number of gpus')
+    parser.add_argument(
+        '--wandb-project',
+        type=str,
+        default=None,
+        help='wandb project name. If set, WandbLoggerHook will be enabled.')
+    parser.add_argument(
+        '--wandb-entity',
+        type=str,
+        default=None,
+        help='wandb entity/team name')
+    parser.add_argument(
+        '--wandb-name',
+        type=str,
+        default=None,
+        help='wandb run name')
+    parser.add_argument(
+        '--wandb-group',
+        type=str,
+        default=None,
+        help='wandb run group')
+    parser.add_argument(
+        '--wandb-job-type',
+        type=str,
+        default=None,
+        help='wandb job type')
+    parser.add_argument(
+        '--wandb-notes',
+        type=str,
+        default=None,
+        help='wandb notes')
+    parser.add_argument(
+        '--wandb-tags',
+        type=str,
+        default=None,
+        help='comma-separated wandb tags (e.g. maptrv2,nuscenes,110ep)')
+    parser.add_argument(
+        '--wandb-dir',
+        type=str,
+        default=None,
+        help='wandb local directory')
+    parser.add_argument(
+        '--wandb-offline',
+        action='store_true',
+        help='set WANDB_MODE=offline when wandb logging is enabled')
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
@@ -99,12 +143,62 @@ def parse_args():
     return args
 
 
+def maybe_enable_wandb(cfg, args):
+    if args.wandb_project is None:
+        return
+
+    try:
+        import wandb  # noqa: F401
+    except ImportError as exc:
+        raise RuntimeError(
+            'wandb logging is enabled, but `wandb` is not installed. '
+            'Install it with `pip install wandb`.'
+        ) from exc
+
+    if args.wandb_offline:
+        os.environ.setdefault('WANDB_MODE', 'offline')
+
+    if cfg.get('log_config', None) is None:
+        cfg.log_config = dict(interval=50, hooks=[dict(type='TextLoggerHook')])
+
+    hooks = cfg.log_config.get('hooks', [])
+    if not isinstance(hooks, list):
+        hooks = [hooks]
+
+    for hook in hooks:
+        if isinstance(hook, dict) and hook.get('type') == 'WandbLoggerHook':
+            cfg.log_config.hooks = hooks
+            return
+
+    init_kwargs = dict(project=args.wandb_project)
+    if args.wandb_entity:
+        init_kwargs['entity'] = args.wandb_entity
+    if args.wandb_name:
+        init_kwargs['name'] = args.wandb_name
+    if args.wandb_group:
+        init_kwargs['group'] = args.wandb_group
+    if args.wandb_job_type:
+        init_kwargs['job_type'] = args.wandb_job_type
+    if args.wandb_notes:
+        init_kwargs['notes'] = args.wandb_notes
+    if args.wandb_dir:
+        init_kwargs['dir'] = args.wandb_dir
+    if args.wandb_tags:
+        tags = [tag.strip() for tag in args.wandb_tags.split(',') if tag.strip()]
+        if tags:
+            init_kwargs['tags'] = tags
+
+    hooks.append(dict(type='WandbLoggerHook', init_kwargs=init_kwargs))
+    cfg.log_config.hooks = hooks
+
+
 def main():
     args = parse_args()
 
     cfg = Config.fromfile(args.config)
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
+    maybe_enable_wandb(cfg, args)
     # import modules from string list.
     if cfg.get('custom_imports', None):
         from mmcv.utils import import_modules_from_strings

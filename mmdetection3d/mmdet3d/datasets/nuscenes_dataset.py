@@ -3,6 +3,7 @@ import mmcv
 import numpy as np
 import pyquaternion
 import tempfile
+from collections.abc import KeysView
 from nuscenes.utils.data_classes import Box as NuScenesBox
 from os import path as osp
 
@@ -140,6 +141,9 @@ class NuScenesDataset(Custom3DDataset):
         self.eval_version = eval_version
         from nuscenes.eval.detection.config import config_factory
         self.eval_detection_configs = config_factory(self.eval_version)
+        class_names = getattr(self.eval_detection_configs, 'class_names', None)
+        if isinstance(class_names, KeysView):
+            self.eval_detection_configs.class_names = list(class_names)
         if self.modality is None:
             self.modality = dict(
                 use_camera=False,
