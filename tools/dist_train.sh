@@ -1,9 +1,18 @@
 #!/usr/bin/env bash
 
-CONFIG=$1
-GPUS=$2
+DEFAULT_CONFIG="projects/configs/maptrv2/maptrv2_nusc_r50_110ep.py"
+DEFAULT_GPUS=8
+DEFAULT_WORK_DIR="work_dirs/maptrv2_r50_110ep"
+DEFAULT_RESUME_PTH="$DEFAULT_WORK_DIR/latest.pth"
+DEFAULT_RESUME_PT="$DEFAULT_WORK_DIR/latest.pt"
+
+CONFIG="${1:-$DEFAULT_CONFIG}"
+GPUS="${2:-$DEFAULT_GPUS}"
 PORT=${PORT:-28509}
-shift 2
+
+# Keep backward compatibility with positional args while allowing defaults.
+[[ $# -gt 0 ]] && shift
+[[ $# -gt 0 ]] && shift
 
 # Default W&B metadata for this training job.
 # You can still override these via environment variables at runtime.
@@ -12,6 +21,30 @@ shift 2
 : "${WANDB_NAME:=Newsplit-Maptrv2-CAM-110ep}"
 
 EXTRA_ARGS=("$@")
+
+has_flag() {
+    local flag="$1"
+    local arg
+    for arg in "${EXTRA_ARGS[@]}"; do
+        if [[ "$arg" == "$flag" || "$arg" == "$flag="* ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+if ! has_flag --work-dir; then
+    EXTRA_ARGS+=(--work-dir "$DEFAULT_WORK_DIR")
+fi
+
+if ! has_flag --resume-from; then
+    if [[ -f "$DEFAULT_RESUME_PTH" ]]; then
+        EXTRA_ARGS+=(--resume-from "$DEFAULT_RESUME_PTH")
+    elif [[ -f "$DEFAULT_RESUME_PT" ]]; then
+        EXTRA_ARGS+=(--resume-from "$DEFAULT_RESUME_PT")
+    fi
+fi
+
 if [[ -n "${WANDB_PROJECT:-}" ]]; then
     EXTRA_ARGS+=(--wandb-project "$WANDB_PROJECT")
     [[ -n "${WANDB_ENTITY:-}" ]] && EXTRA_ARGS+=(--wandb-entity "$WANDB_ENTITY")
